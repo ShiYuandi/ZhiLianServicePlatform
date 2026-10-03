@@ -1,0 +1,32 @@
+services:
+  zhilian-service-platform:
+    # Build this image on the development machine and load it on the server.
+    # Keeping only `image` here prevents an accidental slow server-side build.
+    image: zhilian-service-platform:release
+    pull_policy: never
+    container_name: zhilian-service-platform
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "35081:8000"
+    networks:
+      - shared_net
+
+  zhilian-service-platform-worker:
+    image: zhilian-service-platform:release
+    pull_policy: never
+    container_name: zhilian-service-platform-worker
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    command: ["python", "-m", "app.worker.main"]
+    networks:
+      - shared_net
+
+# 与现有小智/基础设施 Compose 共用网络，以便通过服务别名访问 MySQL、Redis、MinIO。
+# 如果部署时把本文件内容合并到已有 Compose，请删除 external 声明并复用已有 shared_net 定义。
+networks:
+  shared_net:
+    name: shared_net
+    external: true
